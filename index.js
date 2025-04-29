@@ -1,11 +1,16 @@
 const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
+const { join } = require('path');
 
-// Configuración inicial
-const { state, saveState } = useSingleFileAuthState('./auth_info.json');
+// IMPORTANTE: Ahora debe importarse así
+const authFolder = join(__dirname, 'auth_info');
+const { state, saveState } = useSingleFileAuthState(authFolder);
 
 async function startBot() {
-  const sock = makeWASocket({ auth: state, printQRInTerminal: true });
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: true,
+  });
 
   sock.ev.on('connection.update', (update) => {
     if (update.qr) qrcode.generate(update.qr, { small: true });
@@ -15,4 +20,4 @@ async function startBot() {
   sock.ev.on('creds.update', saveState);
 }
 
-startBot();
+startBot().catch(err => console.error('Error:', err));
